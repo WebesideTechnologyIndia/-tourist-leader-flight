@@ -1,0 +1,13 @@
+{
+  "name": "touristleader-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix app_src run dev",
+    "dev:local": "npm --prefix app_src run dev",
+    "dev:https": "npm --prefix app_src run dev:https",
+    "build": "npm --prefix app_src run build",
+    "start": "npm --prefix app_src run start",
+    "postinstall": "npm --prefix app_src install"
+  }
+}

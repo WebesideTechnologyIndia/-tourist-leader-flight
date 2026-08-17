@@ -1,0 +1,23 @@
+# dependencies & build outputs
+node_modules
+.next
+.vercel
+app/
+public_html/
+app.new/
+app.old/
+
+# logs & temporary files
+*.log
+tmp/
+
+# environment & secret files
+.env
+.env*.local
+.env.production
+.env.development
+
+# ssl certificates & system files
+certificates/
+.DS_Store
+Thumbs.db
