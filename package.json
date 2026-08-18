@@ -7,6 +7,7 @@
     "dev:local": "npm --prefix app_src run dev",
     "dev:https": "npm --prefix app_src run dev:https",
     "build": "npm --prefix app_src run build",
+    "vercel-build": "cd app_src && prisma generate && next build",
     "start": "npm --prefix app_src run start",
     "postinstall": "npm --prefix app_src install"
   },
