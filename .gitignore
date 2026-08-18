@@ -2,10 +2,10 @@
 node_modules
 .next
 .vercel
-app/
-public_html/
-app.new/
-app.old/
+/app/
+/public_html/
+/app.new/
+/app.old/
 
 # logs & temporary files
 *.log
