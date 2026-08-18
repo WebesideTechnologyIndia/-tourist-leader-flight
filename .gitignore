@@ -20,4 +20,6 @@ tmp/
 # ssl certificates & system files
 certificates/
 .DS_Store
+._*
+._
 Thumbs.db
