@@ -14,7 +14,7 @@ import { useBooking } from "@/store/booking";
 import { useBilling } from "@/lib/useBilling";
 import { CABS, AIRPORT_SERVICES, AIRPORTS, MEALS } from "@/lib/constants";
 import { fareBreakdown, paxTypes } from "@/lib/fare-rules";
-import { formatINR, formatDate, formatTime } from "@/lib/utils";
+import { cn, formatINR, formatDate, formatTime } from "@/lib/utils";
 
 const CONVENIENCE = 299;
 
