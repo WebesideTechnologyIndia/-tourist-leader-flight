@@ -2,5 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "cd app_src && prisma generate && next build",
   "outputDirectory": "app_src/.next",
-  "installCommand": "npm install && npm --prefix app_src install"
+  "installCommand": "npm install"
 }
