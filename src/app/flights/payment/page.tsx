@@ -81,6 +81,8 @@ export default function PaymentPage() {
       // customer is told the truth here rather than shown "Booking Confirmed!".
       if (res.ok && data.bookingRef && data.status !== "PENDING") {
         router.push(`/flights/confirmation?ref=${data.bookingRef}&pnr=${data.pnr}`);
+      } else if (data.bookingRef && data.status === "PENDING") {
+        router.push(`/flights/confirmation?ref=${data.bookingRef}&status=PENDING`);
       } else {
         setPayError(data.error || "Booking could not be completed. Please try again.");
         setProcessing(false);
@@ -175,13 +177,15 @@ export default function PaymentPage() {
           <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
             <div className="space-y-4">
               {payError && (
-                <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
-                  <AlertCircle size={18} className="mt-0.5 shrink-0 text-rose-500" />
+                <div className={cn("flex items-start gap-2.5 rounded-xl border px-4 py-3", payError.includes("payment is safe") || payError.includes("reference") ? "border-amber-200 bg-amber-50" : "border-rose-200 bg-rose-50")}>
+                  <AlertCircle size={18} className={cn("mt-0.5 shrink-0", payError.includes("payment is safe") || payError.includes("reference") ? "text-amber-500" : "text-rose-500")} />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-rose-700">Payment not completed</p>
-                    <p className="mt-0.5 text-sm text-rose-600">{payError}</p>
+                    <p className={cn("text-sm font-semibold", payError.includes("payment is safe") || payError.includes("reference") ? "text-amber-800" : "text-rose-700")}>
+                      {payError.includes("payment is safe") || payError.includes("reference") ? "Booking Processing" : "Payment not completed"}
+                    </p>
+                    <p className={cn("mt-0.5 text-sm", payError.includes("payment is safe") || payError.includes("reference") ? "text-amber-700" : "text-rose-600")}>{payError}</p>
                   </div>
-                  <button onClick={() => setPayError("")} className="text-rose-400 hover:text-rose-600" aria-label="Dismiss"><X size={16} /></button>
+                  <button onClick={() => setPayError("")} className={cn(payError.includes("payment is safe") || payError.includes("reference") ? "text-amber-400 hover:text-amber-600" : "text-rose-400 hover:text-rose-600")} aria-label="Dismiss"><X size={16} /></button>
                 </div>
               )}
               <FlightSummaryCard />

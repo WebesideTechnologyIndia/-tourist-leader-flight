@@ -189,11 +189,11 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json(
         {
-          error: "We could not confirm your ticket with the airline. Your payment is safe and our team is completing the booking — reference " + bookingRef + ".",
+          error: "We could not confirm your ticket with the airline immediately. Your payment is safe and our team is completing the booking — reference " + bookingRef + ".",
           bookingRef,
           status: "PENDING",
         },
-        { status: 502 },
+        { status: 202 },
       );
     }
     const pnr = issued.pnr;

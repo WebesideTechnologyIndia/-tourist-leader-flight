@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
             "We could not cancel this ticket with the airline automatically. Our team has been notified and will complete your cancellation — your booking is unchanged for now.",
           supplier: booking.source,
         },
-        { status: 502 },
+        { status: 202 },
       );
     }
   }

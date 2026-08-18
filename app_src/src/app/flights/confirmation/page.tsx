@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle2, Download, CalendarPlus, Car, Share2, FileText, Mail, Luggage, ShieldAlert, Home, Check, Printer, Users, Armchair, Utensils } from "lucide-react";
+import { CheckCircle2, Clock, Download, CalendarPlus, Car, Share2, FileText, Mail, Luggage, ShieldAlert, Home, Check, Printer, Users, Armchair, Utensils } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/Button";
@@ -43,6 +43,8 @@ function Confirmation() {
   const router = useRouter();
   const ref = sp.get("ref") || "";
   const pnr = sp.get("pnr") || "";
+  const statusParam = sp.get("status") || "";
+  const isPending = statusParam === "PENDING" || (!pnr && ref.length > 0);
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState("");
   const [invoiceOpen, setInvoiceOpen] = useState(false);
@@ -261,10 +263,20 @@ function Confirmation() {
 
   return (
     <main className="flex-1 bg-background">
-      <div className="bg-gradient-to-b from-emerald-500 to-emerald-600 py-10 text-center text-white">
-        <CheckCircle2 size={56} className="mx-auto animate-fade-up" />
-        <h1 className="mt-3 text-2xl font-extrabold sm:text-3xl">Booking Confirmed!</h1>
-        <p className="mt-1 text-white/90">Your trip is all set. Comfort, all the way.</p>
+      <div className={cn("py-10 text-center text-white transition-colors", isPending ? "bg-gradient-to-b from-amber-500 to-amber-600" : "bg-gradient-to-b from-emerald-500 to-emerald-600")}>
+        {isPending ? (
+          <Clock size={56} className="mx-auto animate-fade-up" />
+        ) : (
+          <CheckCircle2 size={56} className="mx-auto animate-fade-up" />
+        )}
+        <h1 className="mt-3 text-2xl font-extrabold sm:text-3xl">
+          {isPending ? "Payment Received — Booking Processing" : "Booking Confirmed!"}
+        </h1>
+        <p className="mt-1 text-white/90">
+          {isPending
+            ? "Your payment is safe. Our team is confirming your ticket with the airline."
+            : "Your trip is all set. Comfort, all the way."}
+        </p>
       </div>
 
       <div className="mx-auto -mt-6 max-w-3xl px-4 pb-10">
@@ -279,7 +291,7 @@ function Confirmation() {
             </div>
             <div className="text-right">
               <p className="text-xs text-slate-400">PNR</p>
-              <p className="text-lg font-extrabold text-brand">{pnr}</p>
+              <p className={cn("text-lg font-extrabold", isPending ? "text-amber-600" : "text-brand")}>{pnr || "PENDING"}</p>
             </div>
           </div>
 
