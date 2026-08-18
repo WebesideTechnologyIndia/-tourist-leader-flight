@@ -9,5 +9,8 @@
     "build": "npm --prefix app_src run build",
     "start": "npm --prefix app_src run start",
     "postinstall": "npm --prefix app_src install"
+  },
+  "dependencies": {
+    "next": "16.2.9"
   }
 }
