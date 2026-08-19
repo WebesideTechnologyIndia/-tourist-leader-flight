@@ -3,13 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
-    "dev:local": "next dev -p 3000",
-    "dev:https": "next dev --experimental-https --experimental-https-key ./certificates/localhost-key.pem --experimental-https-cert ./certificates/localhost.pem -p 3001",
+    "dev:local": "cd app_src && next dev -p 3000",
+    "dev": "cd app_src && next dev --experimental-https --experimental-https-key ./certificates/localhost-key.pem --experimental-https-cert ./certificates/localhost.pem -p 3001",
     "build": "cd app_src && npx prisma generate && next build",
-    "start": "next start",
-    "lint": "eslint",
-    "postinstall": "npx prisma generate"
+    "start": "cd app_src && next start",
+    "lint": "cd app_src && eslint",
+    "postinstall": "cd app_src && npx prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
