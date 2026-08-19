@@ -5,6 +5,9 @@ import type { NextConfig } from "next";
 const isSharedHostBuild = process.env.BUILD_STANDALONE === "1";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: __dirname,
+  },
   // Self-contained server bundle for the Hostinger (Passenger) deploy.
   // Left off elsewhere so managed-platform builds keep their own output handling.
   output: isSharedHostBuild ? "standalone" : undefined,
@@ -13,7 +16,6 @@ const nextConfig: NextConfig = {
   // so the default pool blows the limit and workers abort mid-build.
   ...(isSharedHostBuild
     ? {
-        turbopack: { root: process.cwd() },
         experimental: { cpus: Number(process.env.BUILD_CPUS) || 1 },
       }
     : {}),
