@@ -6,7 +6,7 @@
     "dev": "next dev -p 3000",
     "dev:local": "next dev -p 3000",
     "dev:https": "next dev --experimental-https --experimental-https-key ./certificates/localhost-key.pem --experimental-https-cert ./certificates/localhost.pem -p 3001",
-    "build": "npx prisma generate && next build",
+    "build": "cd app_src && npx prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "npx prisma generate"
