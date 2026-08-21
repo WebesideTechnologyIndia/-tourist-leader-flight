@@ -19,7 +19,7 @@
  *   7. GetTravelCheckList   → which passenger fields are mandatory
  *   8. CreateItinerary      → TransactionID + TUI''
  *   9. StartPay (HB)        → hold booking (paid from agent Deposit wallet)
- *  10. GetItineraryStatus   → poll until currentStatusSuccess
+ *  10. GetItineraryStatus   → poll until CurrentStatus is "Success" or "Failed"
  *  11. RetrieveBooking      → held PNR
  *  12. StartPay (HP)        → purchase / ticket
  *  13. RetrieveBooking      → ticketed booking (TicketNo)
@@ -100,6 +100,18 @@ async function postBenzy<T>(name: string, url: string, body: unknown, token?: st
     if (captureSink) {
       const endpoint = url.replace(/^https?:\/\/[^/]+/, "");
       captureSink({ name, method: "POST", endpoint, url, headers, at: new Date().toISOString(), request: body, response: json });
+    }
+    if (process.env.BENZY_DEBUG_LOG === "1") {
+      const endpoint = url.replace(/^https?:\/\/[^/]+/, "");
+      console.log("[BENZY_CALL]", JSON.stringify({
+        at: new Date().toISOString(),
+        name,
+        endpoint,
+        url,
+        status: res.status,
+        request: body,
+        response: json,
+      }));
     }
     if (!res.ok) throw new Error(`Benzy ${name} -> ${res.status}`);
     return json as T;
@@ -637,10 +649,9 @@ export async function startPay(
 
 export interface ItineraryStatusResponse extends BenzyBase {
   transactionID?: string;
+  /** Per Benzy docs: poll until this is "Success" or "Failed" — any other value (e.g. "") means still in progress. */
   CurrentStatus?: string;
   PaymentStatus?: string;
-  currentStatusSuccess?: boolean;
-  retry?: boolean;
 }
 
 export async function getItineraryStatus(auth: BenzyAuth, tui: string, transactionId: number): Promise<ItineraryStatusResponse> {
@@ -648,17 +659,17 @@ export async function getItineraryStatus(auth: BenzyAuth, tui: string, transacti
   return postBenzy<ItineraryStatusResponse>("GetItineraryStatus", `${cfg.paymentUrl}/Payment/GetItineraryStatus`, body, auth.token);
 }
 
-/** Poll GetItineraryStatus until currentStatusSuccess (or retry stops / attempts run out). */
+/** Poll GetItineraryStatus until CurrentStatus is "Success" or "Failed" (per Benzy docs), or attempts run out. */
 export async function pollItineraryStatus(
   auth: BenzyAuth,
   tui: string,
   transactionId: number,
-  attempts = 10,
+  attempts = 15,
   delayMs = 2000,
 ): Promise<ItineraryStatusResponse> {
   let data = await getItineraryStatus(auth, tui, transactionId);
   let tries = 0;
-  while (!data.currentStatusSuccess && data.retry !== false && tries < attempts) {
+  while (data.CurrentStatus !== "Success" && data.CurrentStatus !== "Failed" && tries < attempts) {
     await sleep(delayMs);
     data = await getItineraryStatus(auth, tui, transactionId);
     tries++;
@@ -717,7 +728,7 @@ export interface RetrieveBookingResponse extends BenzyBase {
 
 export async function retrieveBooking(auth: BenzyAuth, transactionId: number): Promise<RetrieveBookingResponse> {
   const body = { ReferenceType: "T", TUI: "", ReferenceNumber: String(transactionId), ClientID: auth.clientId };
-  return assertOk("RetrieveBooking", await postBenzy<RetrieveBookingResponse>("RetrieveBooking", `${cfg.utilsUrl}/Utils/RetrieveBooking`, body, auth.token));
+  return assertOk("RetrieveBooking", await postBenzy<RetrieveBookingResponse>("RetrieveBooking", `${cfg.flightsUrl}/Utils/RetrieveBooking`, body, auth.token));
 }
 
 /** Pull the airline PNR(s) out of a RetrieveBooking response. */

@@ -52,8 +52,25 @@ async function postJson<T>(url: string, body: unknown, token?: string): Promise<
       signal: controller.signal,
       cache: "no-store",
     });
+    const text = await res.text();
+    let json: unknown = null;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch {
+      json = text;
+    }
+    if (process.env.BENZY_DEBUG_LOG === "1") {
+      console.log("[BENZY_CALL]", JSON.stringify({
+        at: new Date().toISOString(),
+        endpoint: url.replace(/^https?:\/\/[^/]+/, ""),
+        url,
+        status: res.status,
+        request: body,
+        response: json,
+      }));
+    }
     if (!res.ok) throw new Error(`Benzy ${url} -> ${res.status}`);
-    return (await res.json()) as T;
+    return json as T;
   } finally {
     clearTimeout(t);
   }
@@ -157,6 +174,8 @@ interface BenzyJourney {
   Connections?: BenzySegment[];
   Segments?: BenzySegment[];
   FCType?: string;
+  DepartureTime?: string;
+  ArrivalTime?: string;
 }
 interface BenzySegment {
   MAC?: string; // marketing airline code
@@ -250,8 +269,8 @@ function normalizeBenzyFlights(data: SearchResponse, q: SearchQuery, masterTui: 
       const last = segs[segs.length - 1];
       const airlineCode = j.AirlineCode || first.MAC || first.OAC || "";
       const flightNo = `${airlineCode} ${first.FlightNo || first.FNo || ""}`.trim();
-      const depart = first.DepartureTime || first.DTime || "";
-      const arrive = last.ArrivalTime || last.ATime || "";
+      const depart = j.DepartureTime || first.DepartureTime || first.DTime || "";
+      const arrive = j.ArrivalTime || last.ArrivalTime || last.ATime || "";
       const duration = parseDuration(j.Duration) || segs.reduce((a, s) => a + parseDuration(s.Duration), 0);
       const base = j.NetFare || j.GrossFare || j.Fares || 0;
 

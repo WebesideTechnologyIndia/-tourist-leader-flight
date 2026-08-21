@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchFlights as benzySearch, fareCalendar } from "@/lib/benzy";
 import { amadeusConfigured, searchFlights as amadeusSearch } from "@/lib/amadeus";
-import type { SearchQuery, TripType, CabinClass } from "@/lib/types";
+import type { SearchQuery, TripType, CabinClass, Flight } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
