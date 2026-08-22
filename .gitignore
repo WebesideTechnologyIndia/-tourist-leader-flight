@@ -14,6 +14,7 @@ tmp/
 # environment & secret files
 .env
 .env*.local
+.env.example
 .env.production
 .env.development
 

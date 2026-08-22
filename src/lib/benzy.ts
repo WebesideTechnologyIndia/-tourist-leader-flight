@@ -18,6 +18,7 @@ import { DEMO_OFFERS, type Offer } from "./offers";
 import type { SearchQuery, Flight } from "./types";
 import type { Hotel, HotelSearchQuery } from "./hotel-types";
 import { getSignature } from "./benzy-booking";
+import { loggedJsonPost } from "./logged-fetch";
 
 const cfg = {
   signatureUrl: process.env.BENZY_SIGNATURE_URL || "https://b2bapiutils.benzyinfotech.com/Utils/Signature",
@@ -41,36 +42,14 @@ async function postJson<T>(url: string, body: unknown, token?: string): Promise<
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-      cache: "no-store",
-    });
-    const text = await res.text();
-    let json: unknown = null;
-    try {
-      json = text ? JSON.parse(text) : null;
-    } catch {
-      json = text;
-    }
-    if (process.env.BENZY_DEBUG_LOG === "1") {
-      console.log("[BENZY_CALL]", JSON.stringify({
-        at: new Date().toISOString(),
-        endpoint: url.replace(/^https?:\/\/[^/]+/, ""),
-        url,
-        status: res.status,
-        request: body,
-        response: json,
-      }));
-    }
-    if (!res.ok) throw new Error(`Benzy ${url} -> ${res.status}`);
-    return json as T;
+    return await loggedJsonPost<T>(
+      "BENZY",
+      url,
+      body,
+      token,
+      undefined,
+      controller.signal,
+    );
   } finally {
     clearTimeout(t);
   }

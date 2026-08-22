@@ -22,6 +22,7 @@
  *     live flag, mirroring how `BUS_BOOKING_LIVE` guards the bus wallet.
  */
 import { paxTypes } from "./fare-rules";
+import type { Flight, FlightBookingRef, SearchQuery, TravellerCount } from "./types";
 import {
   runBookingFlow as amadeusBook,
   amadeusBookingConfigured,

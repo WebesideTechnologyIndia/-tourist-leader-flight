@@ -44,6 +44,7 @@
  * static IP to be whitelisted, and booking services to be entitled on the WSAP).
  */
 import crypto from "crypto";
+import { loggedSoapPost } from "./logged-fetch";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -268,18 +269,15 @@ async function send(
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(cfg.endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "text/xml; charset=utf-8", SOAPAction: action },
-      body: request,
-      signal: controller.signal,
-      cache: "no-store",
-    });
-    const xml = await res.text();
-    if (cfg.debug) console.log(`[amadeus-booking] ${name} -> ${res.status}\n${xml.slice(0, 4000)}`);
+    const xml = await loggedSoapPost(
+      `AMADEUS:${name}`,
+      cfg.endpoint,
+      request,
+      action,
+      controller.signal,
+    );
     if (captureSink) captureSink({ name, action, request, response: xml });
     const fault = (xml.match(/<faultstring>([\s\S]*?)<\/faultstring>/) || [])[1]?.trim();
-    if (!res.ok && !fault) throw new Error(`Amadeus ${name} -> HTTP ${res.status}`);
     return { xml, session: parseSession(xml) ?? session, fault };
   } finally {
     clearTimeout(t);

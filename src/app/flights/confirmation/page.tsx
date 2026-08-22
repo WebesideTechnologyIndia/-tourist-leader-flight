@@ -48,6 +48,7 @@ function Confirmation() {
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState("");
   const [invoiceOpen, setInvoiceOpen] = useState(false);
+  const [liveStatus, setLiveStatus] = useState<{ status?: string; pnr?: string | null; note?: string | null } | null>(null);
   const { flight, fare, query, passengers, extraFlights, seats, meals, contactEmail, contactPhone, addOns, customerState } = useBooking();
   const { quote } = useBilling();
 
@@ -55,6 +56,26 @@ function Confirmation() {
     setMounted(true);
     if (!ref) router.replace("/");
   }, [ref, router]);
+
+  // While the booking is still processing, poll for the live supplier status
+  // (surfaces the exact step/CurrentStatus so support & the customer aren't
+  // left guessing what "processing" actually means).
+  useEffect(() => {
+    if (!isPending || !ref) return;
+    let stopped = false;
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/bookings/processing-status?ref=${encodeURIComponent(ref)}`, { cache: "no-store" });
+        const data = await res.json();
+        if (!stopped && data?.found) setLiveStatus(data);
+      } catch {
+        /* ignore transient poll errors */
+      }
+    };
+    poll();
+    const id = setInterval(poll, 6000);
+    return () => { stopped = true; clearInterval(id); };
+  }, [isPending, ref]);
 
   useEffect(() => {
     if (!toast) return;
@@ -291,9 +312,19 @@ function Confirmation() {
             </div>
             <div className="text-right">
               <p className="text-xs text-slate-400">PNR</p>
-              <p className={cn("text-lg font-extrabold", isPending ? "text-amber-600" : "text-brand")}>{pnr || "PENDING"}</p>
+              <p className={cn("text-lg font-extrabold", isPending ? "text-amber-600" : "text-brand")}>{liveStatus?.pnr || pnr || "PENDING"}</p>
             </div>
           </div>
+
+          {isPending && (
+            <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <p className="font-semibold">Current status: {liveStatus?.status || "PENDING"}</p>
+              {liveStatus?.note && (
+                <p className="mt-1 break-words font-mono text-xs text-amber-700/80">{liveStatus.note}</p>
+              )}
+              <p className="mt-1 text-xs text-amber-600/80">This updates automatically every few seconds.</p>
+            </div>
+          )}
 
           <div className="mt-4"><FlightSummaryCard /></div>
 
