@@ -24,6 +24,7 @@
 import crypto from "crypto";
 import { generateFlights } from "./mock-flights";
 import type { SearchQuery, Flight, FareOption } from "./types";
+import { loggedSoapPost } from "./logged-fetch";
 
 const cfg = {
   endpoint: (process.env.AMADEUS_ENDPOINT || "").trim(),
@@ -99,17 +100,8 @@ async function soapCall(action: string, bodyXml: string): Promise<string> {
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(cfg.endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "text/xml; charset=utf-8", SOAPAction: action },
-      body: buildEnvelope(action, bodyXml),
-      signal: controller.signal,
-      cache: "no-store",
-    });
-    const text = await res.text();
-    if (cfg.debug) console.log(`[amadeus] ${action} -> ${res.status}\n${text.slice(0, 4000)}`);
-    if (!res.ok) throw new Error(`Amadeus ${action} -> ${res.status}`);
-    return text;
+    const envelope = buildEnvelope(action, bodyXml);
+    return await loggedSoapPost("AMADEUS", cfg.endpoint, envelope, action, controller.signal);
   } finally {
     clearTimeout(t);
   }

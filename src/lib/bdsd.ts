@@ -45,6 +45,7 @@
 import { generateBuses } from "./mock-bus";
 import { resolveCityId, describeCityLookup } from "./bus-cities";
 import type { BusSearchQuery, BusTrip, BoardingPoint } from "./bus-types";
+import { loggedJsonPostWithHeaders } from "./logged-fetch";
 
 const cfg = {
   baseUrl: (process.env.BDSD_BASE_URL || "https://stagingapi.bdsd.technology/api").replace(/\/$/, ""),
@@ -76,28 +77,15 @@ async function bdsdPost<T extends BdsdEnvelope>(path: string, body: Record<strin
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT);
   try {
-    const res = await fetch(`${cfg.baseUrl}${path}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        UserName: cfg.userName,
-        Password: cfg.password,
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-      cache: "no-store",
-    });
-    const text = await res.text();
-    let data: T;
-    try {
-      data = JSON.parse(text) as T;
-    } catch {
-      throw new BdsdError(res.status, `non-JSON response: ${text.slice(0, 120)}`);
-    }
+    const data = await loggedJsonPostWithHeaders<T>(
+      "BDSD",
+      `${cfg.baseUrl}${path}`,
+      body,
+      { UserName: cfg.userName, Password: cfg.password },
+      controller.signal,
+    );
     const err = data.Error;
     if (err && err.ErrorCode !== 0) throw new BdsdError(err.ErrorCode, err.ErrorMessage || "unknown error");
-    if (!res.ok) throw new BdsdError(res.status, `HTTP ${res.status}`);
     return data;
   } finally {
     clearTimeout(timer);

@@ -11,6 +11,7 @@ import { computeCommission } from "@/lib/billing-core";
 import { attachBillTo } from "@/lib/invoice-billing";
 import { fareBreakdown, paxTypes } from "@/lib/fare-rules";
 import { MEALS } from "@/lib/constants";
+import { withLogger } from "@/lib/with-logger";
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +78,7 @@ function billingFields(body: Record<string, unknown>) {
 }
 
 /** List the signed-in user's bookings (for My Trips). */
-export async function GET() {
+export const GET = withLogger(async () => {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ bookings: [] }, { status: 200 });
   try {
@@ -90,9 +91,9 @@ export async function GET() {
   } catch {
     return NextResponse.json({ bookings: [] });
   }
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withLogger(async (req: NextRequest) => {
   try {
     const body = await req.json();
     const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = body;
@@ -336,7 +337,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
-}
+});
 
 interface HotelBookingBody {
   hotel?: { name: string; area: string; city: string; image: string; starRating: number };

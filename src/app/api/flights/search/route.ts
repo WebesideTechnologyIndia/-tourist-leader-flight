@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { searchFlights as benzySearch, fareCalendar } from "@/lib/benzy";
 import { amadeusConfigured, searchFlights as amadeusSearch } from "@/lib/amadeus";
 import type { SearchQuery, TripType, CabinClass, Flight } from "@/lib/types";
+import { withLogger } from "@/lib/with-logger";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ function parseQuery(sp: URLSearchParams): SearchQuery {
   };
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withLogger(async (req: NextRequest) => {
   const q = parseQuery(req.nextUrl.searchParams);
 
   // Search flights concurrently from both API sources: Amadeus (AM) and Benzy / Akbar (AK)
@@ -48,4 +49,4 @@ export async function GET(req: NextRequest) {
     calendar: fareCalendar(q),
     live: isLive,
   });
-}
+});
